@@ -10,6 +10,5 @@ package asnakestail;
  * @author gemmaelse
  */
 public enum GridObjectType {
-    BOOK, FAILD, TIME
-    
+    BOOK, FAILD, TIME,LOGO,SQUARE 
 }

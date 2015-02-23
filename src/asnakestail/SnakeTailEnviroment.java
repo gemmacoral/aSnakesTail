@@ -28,16 +28,18 @@ class SnakeTailEnviroment extends Environment implements GridDrawData, LocationV
     private Grid grid;
     private Snake snake;
     private Score score;
+    private int level;
 //    private final Color CLEAR = new Color();
 
-    public final int SLOW_SPEED = 7;
+    public final int SLOW_SPEED = 35;
     public final int MEDIUM_SPEED = 5;
     public final int HIGH_SPEED = 3;
 
     private int moveDelayCounter = 0;
-    private int moveDelayLimit = HIGH_SPEED;
+    private int moveDelayLimit = SLOW_SPEED;
     private Image BOOK;
     private Image TIME;
+    private Image SQUARE;
 
     private ArrayList<GridObject> gridObjects;
 
@@ -74,19 +76,25 @@ class SnakeTailEnviroment extends Environment implements GridDrawData, LocationV
 
     @Override
     public void initializeEnvironment() {
+//       
         score = new Score();
-        score.setPosition(new Point(10, 30));
+        score.setPosition(new Point(30, 30));
 
-        this.setBackground(ResourceTools.loadImageFromResource("resources/background.jpg"));
+        logo = ResourceTools.loadImageFromResource("resources/hermi copy.png");
+        SQUARE = ResourceTools.loadImageFromResource("resources/square.png");
+
+//        this.setBackground(ResourceTools.loadImageFromResource("resources/background3.png"));
+        setLevel(1);
         BOOK = ResourceTools.loadImageFromResource("resources/book.png");
         TIME = ResourceTools.loadImageFromResource("resources/TIME.png");
+//        LOGO = ResourceTools.loadImageFromResource("resources/hermi copy.png");
 
-        setGrid(new Grid(25, 25, 25, 25, new Point(50, 50), Color.BLACK));
+        setGrid(new Grid(15, 15, 40, 40, new Point(180, 50), Color.BLACK));
 
         snake = new Snake();
         snake.setLocationValidator(this);
         snake.setDrawData(this);
-        snake.setDirection(Direction.DOWN);
+        snake.setDirection(Direction.RIGHT);
 
         ArrayList<Point> body = new ArrayList<>();
         body.add(new Point(3, 1));
@@ -98,8 +106,11 @@ class SnakeTailEnviroment extends Environment implements GridDrawData, LocationV
 
         gridObjects = new ArrayList<>();
         gridObjects.add(new GridObject(GridObjectType.BOOK, getRandomPoint()));
-        gridObjects.add(new GridObject(GridObjectType.TIME, getRandomPoint()));
+        gridObjects.add(new GridObject(GridObjectType.BOOK, getRandomPoint()));
+        gridObjects.add(new GridObject(GridObjectType.BOOK, getRandomPoint()));
+        gridObjects.add(new GridObject(GridObjectType.BOOK, getRandomPoint()));
 
+        gridObjects.add(new GridObject(GridObjectType.TIME, getRandomPoint()));
     }
 
     @Override
@@ -134,6 +145,12 @@ class SnakeTailEnviroment extends Environment implements GridDrawData, LocationV
             snake.togglePaused();
         } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             snake.grow(2);
+        } else if (e.getKeyCode() == KeyEvent.VK_1) {
+            setLevel(1);
+        } else if (e.getKeyCode() == KeyEvent.VK_2) {
+            setLevel(2);
+        } else if (e.getKeyCode() == KeyEvent.VK_3) {
+            setLevel(3);
         }
     }
 
@@ -145,18 +162,41 @@ class SnakeTailEnviroment extends Environment implements GridDrawData, LocationV
     public void environmentMouseClicked(MouseEvent e) {
     }
 
+    private Image logo;
+
     @Override
     public void paintEnvironment(Graphics graphics) {
+//        graphics.drawImage(BOOK, WIDTH, WIDTH, this);
+
+        if (logo != null) {
+            graphics.drawImage(logo, 0, 35, 200, 200, this);
+        }
+
+        if (SQUARE != null) {
+            graphics.drawImage(SQUARE, getGrid().getPosition().x, getGrid().getPosition().y,
+                    (getGrid().getColumns() * getGrid().getCellWidth()),
+                    (getGrid().getRows() * getGrid().getCellHeight()),
+                    this);
+        }
+
         if (score != null) {
             score.draw(graphics);
         }
+        
         if (getGrid() != null) {
-            getGrid().paintComponent(graphics);
+//            getGrid().paintComponent(graphics);
+
+            graphics.setColor(Color.BLACK);
+
+            graphics.drawRect(getGrid().getPosition().x, getGrid().getPosition().y,
+                    (getGrid().getColumns() * getGrid().getCellWidth()),
+                    (getGrid().getRows() * getGrid().getCellHeight()));
         }
 
         if (snake != null) {
             snake.draw(graphics);
         }
+        
         if (gridObjects != null) {
             for (GridObject gridObject : gridObjects) {
                 if (gridObject.getType() == GridObjectType.BOOK) {
@@ -166,16 +206,21 @@ class SnakeTailEnviroment extends Environment implements GridDrawData, LocationV
 
 //                
                 }
+//                if (gridObject.getType() == GridObjectType.TIME) {
+//                    graphics.drawImage(TIME, grid.getCellSystemCoordinate(gridObject.getLocation()).x,
+//                            grid.getCellSystemCoordinate(gridObject.getLocation()).y,
+//                            grid.getCellHeight(), grid.getCellWidth(), this);
+////                }else if (gridObject.getType() == GridObjectType.BOOK) {
+////                    graphics.drawImage(BOOK, grid.getCellSystemCoordinate(gridObject.getLocation()).x,
+////                            grid.getCellSystemCoordinate(gridObject.getLocation()).y,
+////                            grid.getCellHeight(), grid.getCellWidth(), this);
+//
+////                    GraphicsPalette.drawUnicorn(graphics, grid.getCellSystemCoordinate(gridObject.getLocation()), grid.getCellSize(), Color.YELLOW, environment.Direction.UP);
+//                }
                 if (gridObject.getType() == GridObjectType.TIME) {
                     graphics.drawImage(TIME, grid.getCellSystemCoordinate(gridObject.getLocation()).x,
                             grid.getCellSystemCoordinate(gridObject.getLocation()).y,
                             grid.getCellHeight(), grid.getCellWidth(), this);
-//                }else if (gridObject.getType() == GridObjectType.BOOK) {
-//                    graphics.drawImage(BOOK, grid.getCellSystemCoordinate(gridObject.getLocation()).x,
-//                            grid.getCellSystemCoordinate(gridObject.getLocation()).y,
-//                            grid.getCellHeight(), grid.getCellWidth(), this);
-
-//                    GraphicsPalette.drawUnicorn(graphics, grid.getCellSystemCoordinate(gridObject.getLocation()), grid.getCellSize(), Color.YELLOW, environment.Direction.UP);
                 }
             }
         }
@@ -206,15 +251,15 @@ class SnakeTailEnviroment extends Environment implements GridDrawData, LocationV
     @Override
     public Point validateLocation(Point point) {
         //asses and adjust point as required...
+
+        snake.isSelfHit();
         if (point.x >= this.grid.getColumns()) {
             point.x = 0;
-
         } else if (point.x < 0) {
             point.x = this.grid.getColumns() - 1;
         }
         if (point.y >= this.grid.getColumns()) {
             point.y = 0;
-
         } else if (point.y < 0) {
             point.y = this.grid.getColumns() - 1;
         }
@@ -226,20 +271,44 @@ class SnakeTailEnviroment extends Environment implements GridDrawData, LocationV
                 object.setLocation(this.getRandomPoint());
                 AudioPlayer.play("/resources/page-flip-8.wav");
                 snake.grow(1);
+                this.score.addValue(1);
             }
 
-//            if (object.getLocation().equals(point)) {
-//                System.out.println("HIT =" + object.getType());
-//                object.setLocation(this.getRandomPoint());
-//                snake.remove(-1);
-//                AudioPlayer.play("/resources/page-flip-8.wav");
-//                snake;
-
-            }
-
-            //then return the point
-            return point;
+            if (object.getLocation().equals(point)) {
+                System.out.println("HIT =" + object.getType());
+                object.setLocation(this.getRandomPoint());
+                snake.grow(-1);
+                AudioPlayer.play("/resources/page-flip-8.wav");
+                
         }
+
+        //then return the point
+        }
+        return point;
+    }
 //</editor-fold>
 
+    /**
+     * @return the level
+     */
+    public int getLevel() {
+        return level;
     }
+
+    /**
+     * @param level the level to set
+     */
+    public void setLevel(int level) {
+        if (this.level != level) {
+            if (level == 1) {
+                this.setBackground(ResourceTools.loadImageFromResource("resources/background3.png"));
+            } else if (level == 2) {
+                this.setBackground(ResourceTools.loadImageFromResource("resources/background.png"));
+            } else if (level == 3) {
+                this.setBackground(ResourceTools.loadImageFromResource("resources/background2.psd"));
+            }
+        }
+        this.level = level;
+    }
+
+}

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import environment.LocationValidatorIntf;
 import images.ResourceTools;
 import java.awt.Image;
+import java.awt.image.ImageObserver;
 
 /**
  *
@@ -32,27 +33,32 @@ public class Snake {
     //move
     //die
     //draw
-
     {
-        segmentImage = (ResourceTools.loadImageFromResource("resources/hermi.png"));
+        segmentImage = (ResourceTools.loadImageFromResource("resources/hermi copy.png"));
     }
 
     public void draw(Graphics graphics) {
-        for (Point bodySegmentLocation : body) {
+        for (Point bodySegmentLocation : getSafeBody()) {
             Image segment = segmentImage.getScaledInstance(drawData.getCellWidth(), drawData.getCellHeight(), Image.SCALE_FAST);
-//            System.out.println("Location =" + bodySegmentLocation);
-//            System.out.println("System Loc =" + drawData.getCellSystemCoordinate(bodySegmentLocation))
-            drawData.getCellSystemCoordinate(bodySegmentLocation);
 
-            graphics.setColor(Color.BLACK);
+            drawData.getCellSystemCoordinate(bodySegmentLocation);
 
             Point topLeft = drawData.getCellSystemCoordinate(bodySegmentLocation);
             graphics.drawImage(segment, topLeft.x, topLeft.y, null);
-
-//            Point topLeft = drawData.getCellSystemCoordinate(bodySegmentLocation);
-//           graphics.fillOval(topLeft.x, topLeft.y, drawData.getCellWidth(), drawData.getCellHeight());
+//            graphics.drawImage(logo, 70, 25, this);
         }
 
+    }
+
+    /**
+     * @return the body
+     */
+    public ArrayList<Point> getSafeBody() {
+        ArrayList<Point> safeBody = new ArrayList<>();
+        for (Point location : body) {
+            safeBody.add(location);
+        }
+        return safeBody;
     }
 
     /**
@@ -102,8 +108,6 @@ public class Snake {
         growthCounter += length;
     }
 
-   
-
     public void move() {
         if (!paused) {
             Point newHead = (Point) getHead().clone();
@@ -121,7 +125,6 @@ public class Snake {
                 body.add(HEAD_POSITION, locationValidator.validateLocation(newHead));
             }
 
-//            body.remove(body.size() - 1);
             if (growthCounter <= 0) {
                 body.remove(body.size() - 1);
             } else {
@@ -181,8 +184,21 @@ public class Snake {
         return body.get(HEAD_POSITION);
     }
 
-    void remove(int i) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+    /**
+     * @return the selfHit
+     */
+    public boolean isSelfHit() {
+        for (int i = 1; i < this.body.size(); i++) {
+            if (this.getHead().equals(this.body.get(i))) {
+//                System.out.println("HIT= "+getHead());
+                return true;
+            }
+        }
+        return false;
     }
 
+    /*
+     * @param selfHit the selfHit to set
+     */
 }

@@ -6,6 +6,7 @@
 package asnakestail;
 
 import environment.ApplicationStarter;
+import java.awt.Dimension;
 
 /**
  *
@@ -17,7 +18,8 @@ public class ASnakesTail {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        ApplicationStarter.run("a Snakes Tail", new SnakeTailEnviroment());
+//        ApplicationStarter.run("Hermione", new SnakeTailEnviroment());
+        ApplicationStarter.run(args, "Hermione", new Dimension(1000, 1000), new SnakeTailEnviroment());
     }
 
 }
